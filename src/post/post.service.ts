@@ -15,7 +15,7 @@ export class PostService {
   // 建立食記
   async createPost(
     title: string, content: string, rating: number, 
-    restaurantId: string, authorId: string, imageUrl?: string,
+    restaurantId: string, authorId: string, imageUrls?: string[],
   ): Promise<string> {
     const docRef = this.postCollection.doc();
     await docRef.set({
@@ -24,7 +24,7 @@ export class PostService {
       rating,
       restaurantId,
       authorId,
-      imageUrl: imageUrl || null,
+      imageUrls: imageUrls || [],
       createdAt: new Date(),
     });
     return docRef.id;
