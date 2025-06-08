@@ -22,4 +22,7 @@ export class Post {
 
   @Field(() => String) 
   authorId: string;
+
+  @Field({ nullable: true }) // 設為可選，允許沒有圖片的食記
+  imageUrl?: string;
 }

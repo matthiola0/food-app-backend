@@ -16,6 +16,7 @@ type Post {
   rating: Float!
   restaurant: Restaurant!
   authorId: String!
+  imageUrl: String
 }
 
 type User {
@@ -33,7 +34,7 @@ type Query {
 
 type Mutation {
   createRestaurant(name: String!, address: String!, tags: [String!]!): String!
-  createPost(title: String!, content: String!, rating: Float!, restaurantId: String!): String!
+  createPost(title: String!, content: String!, rating: Float!, restaurantId: String!, imageUrl: String): String!
   deletePost(postId: String!): Boolean!
   updatePost(postId: String!, updatePostInput: UpdatePostInput!): Post!
   register(email: String!, password: String!): User!

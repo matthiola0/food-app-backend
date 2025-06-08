@@ -13,7 +13,10 @@ export class PostService {
   private readonly restaurantCollection = this.db.collection('restaurants');
 
   // 建立食記
-  async createPost(title: string, content: string, rating: number, restaurantId: string, authorId: string): Promise<string> {
+  async createPost(
+    title: string, content: string, rating: number, 
+    restaurantId: string, authorId: string, imageUrl?: string,
+  ): Promise<string> {
     const docRef = this.postCollection.doc();
     await docRef.set({
       title,
@@ -21,6 +24,7 @@ export class PostService {
       rating,
       restaurantId,
       authorId,
+      imageUrl: imageUrl || null,
       createdAt: new Date(),
     });
     return docRef.id;

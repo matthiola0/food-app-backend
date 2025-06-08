@@ -19,6 +19,7 @@ export class PostResolver {
     @Args('rating') rating: number,
     @Args('restaurantId') restaurantId: string,
     @Context() context,
+    @Args('imageUrl', { type: () => String, nullable: true }) imageUrl?: string,
   ): Promise<string> {
     const user = context.user;
     if (!user || !user.uid) {
@@ -26,7 +27,7 @@ export class PostResolver {
     }
 
     // 將使用者 uid 作為 authorId 傳入
-    return this.postService.createPost(title, content, rating, restaurantId, user.uid);
+    return this.postService.createPost(title, content, rating, restaurantId, user.uid, imageUrl);
   }
 
   // 查詢食記的 Query

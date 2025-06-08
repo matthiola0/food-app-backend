@@ -10,6 +10,7 @@ import { RestaurantModule } from './restaurant/restaurant.module';
 import { PostModule } from './post/post.module';
 import { UserModule } from './user/user.module';
 import * as serviceAccount from './firebase/serviceAccountKey.json';
+import { UploadModule } from './upload/upload.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import * as serviceAccount from './firebase/serviceAccountKey.json';
     RestaurantModule,
     PostModule,
     UserModule,
+    UploadModule,
   ],
   controllers: [],
   providers: [],
