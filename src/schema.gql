@@ -1,0 +1,47 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+type Restaurant {
+  restaurantId: ID!
+  name: String!
+  address: String!
+  tags: [String!]
+}
+
+type Post {
+  postId: ID!
+  title: String!
+  content: String!
+  rating: Float!
+  restaurant: Restaurant!
+  authorId: String!
+}
+
+type User {
+  uid: ID!
+  email: String!
+  displayName: String
+}
+
+type Query {
+  restaurants: [Restaurant!]!
+  restaurant(id: String!): Restaurant!
+  post(id: String!): Post!
+  postsByRestaurant(restaurantId: String!): [Post!]!
+}
+
+type Mutation {
+  createRestaurant(name: String!, address: String!, tags: [String!]!): String!
+  createPost(title: String!, content: String!, rating: Float!, restaurantId: String!): String!
+  deletePost(postId: String!): Boolean!
+  updatePost(postId: String!, updatePostInput: UpdatePostInput!): Post!
+  register(email: String!, password: String!): User!
+  ensureUser: User!
+}
+
+input UpdatePostInput {
+  title: String
+  content: String
+  rating: Float
+}
