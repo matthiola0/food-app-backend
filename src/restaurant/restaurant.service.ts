@@ -3,6 +3,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import * as admin from 'firebase-admin';
 import { Restaurant } from './dto/restaurant.model';
+import * as ngeohash from 'ngeohash';
 
 @Injectable()
 export class RestaurantService {
@@ -10,16 +11,18 @@ export class RestaurantService {
   private readonly restaurantCollection = this.db.collection('restaurants');
 
   // 建立餐廳
-  async createRestaurant(name: string, address: string, tags: string[]): Promise<string> {
-    const docRef = this.restaurantCollection.doc(); // 產生一個新的文件參照
+  async createRestaurant(name: string, address: string, lat: number, lng: number): Promise<string> {
+    const geohash = ngeohash.encode(lat, lng); // 計算 geohash
+    const docRef = this.restaurantCollection.doc();
     await docRef.set({
       name,
       address,
-      tags,
-      createdAt: new Date(),
+      lat,
+      lng,
+      geohash, // 儲存 geohash
     });
-    return docRef.id; // 回傳新建立的餐廳 ID
-  }
+    return docRef.id;
+}
 
   // 查詢所有餐廳
   async findAll(): Promise<Restaurant[]> {
@@ -44,4 +47,26 @@ export class RestaurantService {
       ...doc.data(),
     } as Restaurant;
   }
+  
+  async findNearby(geohashPrefix: string): Promise<Restaurant[]> {
+    const endPrefix = geohashPrefix + '~'; // Geohash 查詢的結束邊界
+    const querySnapshot = await this.restaurantCollection
+      .where('geohash', '>=', geohashPrefix)
+      .where('geohash', '<', endPrefix)
+      .limit(50) // 限制最多回傳 50 筆
+      .get();
+
+    return querySnapshot.docs.map(doc => {
+      const data = doc.data();
+      return {
+        restaurantId: doc.id,
+        name: data.name,
+        address: data.address,
+        lat: data.lat,
+        lng: data.lng,
+        geohash: data.geohash,
+      };
+    });
+  }
 }
+

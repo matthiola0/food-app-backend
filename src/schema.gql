@@ -7,6 +7,9 @@ type Restaurant {
   name: String!
   address: String!
   tags: [String!]
+  lat: Float!
+  lng: Float!
+  geohash: String!
 }
 
 type Post {
@@ -28,12 +31,13 @@ type User {
 type Query {
   restaurants: [Restaurant!]!
   restaurant(id: String!): Restaurant!
+  nearbyRestaurants(geohashPrefix: String!): [Restaurant!]!
   post(id: String!): Post!
   postsByRestaurant(restaurantId: String!): [Post!]!
 }
 
 type Mutation {
-  createRestaurant(name: String!, address: String!, tags: [String!]!): String!
+  createRestaurant(name: String!, address: String!, lat: Float!, lng: Float!): String!
   createPost(title: String!, content: String!, rating: Float!, restaurantId: String!, imageUrls: [String]): String!
   deletePost(postId: String!): Boolean!
   updatePost(postId: String!, updatePostInput: UpdatePostInput!): Post!
