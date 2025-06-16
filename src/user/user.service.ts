@@ -7,28 +7,22 @@ import { UserRecord } from 'firebase-admin/auth';
 @Injectable()
 export class UserService {
   private readonly firestore = admin.firestore();
+  private readonly usersCollection = this.firestore.collection('users');
 
-  async register(email: string, password: string): Promise<User> {
+  async findById(uid: string): Promise<User | null> {
+    const doc = await this.usersCollection.doc(uid).get();
+    if (!doc.exists) return null;
+    return { uid: doc.id, ...doc.data() } as User;
+  }
+
+  async register(email: string, password: string, displayName: string): Promise<User> {
+    const role = 'NORMAL';
     try {
-      // 1. 在 Firebase Authentication 中建立使用者
-      const userRecord = await admin.auth().createUser({
-        email,
-        password,
-      });
-
-      // 2. 在我們的 Firestore `users` 集合中建立對應的資料
-      const userRef = this.firestore.collection('users').doc(userRecord.uid);
-      await userRef.set({
-        email: userRecord.email,
-        createdAt: new Date(),
-      });
-
-      return {
-        uid: userRecord.uid,
-        email: email,
-      };
+      const userRecord = await admin.auth().createUser({ email, password, displayName });
+      const userRef = this.usersCollection.doc(userRecord.uid);
+      await userRef.set({ email, displayName, role, createdAt: new Date() });
+      return { uid: userRecord.uid, email, displayName, role };
     } catch (error) {
-      // 處理 Email 已被註冊的錯誤
       if (error.code === 'auth/email-already-exists') {
         throw new ConflictException('This email is already registered.');
       }
@@ -51,6 +45,7 @@ export class UserService {
         uid: firebaseUser.uid,
         email: existingData.email,
         displayName: existingData.displayName,
+        role: existingData.role,
       };
     } 
     // 情況二：使用者是第一次透過 Google 登入，我們需要為他建立資料
@@ -72,6 +67,7 @@ export class UserService {
         uid: firebaseUser.uid,
         email: newUserProfile.email,
         displayName: newUserProfile.displayName,
+        role: 'NORMAL',
       };
     }
   }

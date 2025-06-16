@@ -1,8 +1,9 @@
 // src/post/dto/post.model.ts
 
 import { Field, Float, ID, ObjectType } from '@nestjs/graphql';
-import { Restaurant } from 'src/restaurant/dto/restaurant.model'; // 引用剛才的 Restaurant 模型
-
+import { Restaurant } from 'src/restaurant/dto/restaurant.model';
+import { User } from 'src/user/dto/user.model';
+import { UserModule } from 'src/user/user.module';
 @ObjectType()
 export class Post {
   @Field(() => ID)
@@ -20,8 +21,11 @@ export class Post {
   @Field(() => Restaurant)
   restaurant: Restaurant; 
 
-  @Field(() => String) 
-  authorId: string;
+  @Field(() => [String], { nullable: 'itemsAndList' })
+  hashtags?: string[];
+
+  @Field(() => User) // 從 ID 改為完整的 User 物件
+  author: User;
 
   @Field(() => [String], { nullable: 'itemsAndList' }) // 設為可選，允許沒有圖片的食記
   imageUrls?: string[];

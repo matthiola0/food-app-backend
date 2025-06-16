@@ -1,15 +1,20 @@
 // src/post/post.resolver.ts
 
-import { Args, Mutation, Query, Resolver, Context } from '@nestjs/graphql';
+import { Resolver, Query, Mutation, Args, Context, Parent, ResolveField } from '@nestjs/graphql'; // 1. 在這裡加上 Parent, ResolveField
 import { PostService } from './post.service';
 import { Post } from './dto/post.model';
-import { UseGuards } from '@nestjs/common';
+import { UseGuards, ForbiddenException, NotFoundException } from '@nestjs/common';
 import { AuthGuard } from 'src/auth/auth.guard';
+import { User } from 'src/user/dto/user.model';
+import { UserService } from 'src/user/user.service';
 import { UpdatePostInput } from './dto/update-post.input';
 
 @Resolver(() => Post)
 export class PostResolver {
-  constructor(private readonly postService: PostService) {}
+  constructor(
+    private readonly postService: PostService,
+    private readonly userService: UserService, // 注入 UserService
+  ) {}
 
   @UseGuards(AuthGuard)
   @Mutation(() => String)
@@ -20,6 +25,7 @@ export class PostResolver {
     @Args('restaurantId') restaurantId: string,
     @Context() context,
     @Args('imageUrls', { type: () => [String], nullable: 'itemsAndList' }) imageUrls?: string[],
+    @Args('hashtags', { type: () => [String], nullable: 'itemsAndList' }) hashtags?: string[],
   ): Promise<string> {
     const user = context.user;
     if (!user || !user.uid) {
@@ -27,7 +33,7 @@ export class PostResolver {
     }
 
     // 將使用者 uid 作為 authorId 傳入
-    return this.postService.createPost(title, content, rating, restaurantId, user.uid, imageUrls);
+    return this.postService.createPost(title, content, rating, restaurantId, user.uid, imageUrls, hashtags);
   }
 
   // 查詢食記的 Query
@@ -66,5 +72,15 @@ export class PostResolver {
   ): Promise<Post> {
     const user = context.user;
     return this.postService.updatePost(postId, user.uid, updatePostInput);
+  }
+
+  @ResolveField('author', () => User)
+  async getAuthor(@Parent() post: any): Promise<User> {
+    const author = await this.userService.findById(post.authorId);
+
+    if (!author) {
+      throw new NotFoundException(`Author with ID ${post.authorId} not found.`);
+    }
+    return author;
   }
 }

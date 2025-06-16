@@ -14,8 +14,9 @@ export class UserResolver {
   async register(
     @Args('email') email: string,
     @Args('password') password: string,
+    @Args('displayName') displayName: string,
   ): Promise<User> {
-    return this.userService.register(email, password);
+    return this.userService.register(email, password, displayName);
   }
 
   @UseGuards(AuthGuard) // 使用守衛保護

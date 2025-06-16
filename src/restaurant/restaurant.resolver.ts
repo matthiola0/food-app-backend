@@ -1,22 +1,16 @@
 // src/restaurant/restaurant.resolver.ts
 
-import { Args, Float, Mutation, Query, Resolver } from '@nestjs/graphql';
-import { Restaurant } from './dto/restaurant.model';
+import { Resolver, Query, Mutation, Args, Float, Context, Parent, ResolveField } from '@nestjs/graphql';
 import { RestaurantService } from './restaurant.service';
+import { Restaurant } from './dto/restaurant.model';
+import { ForbiddenException, UseGuards } from '@nestjs/common';
+import { AuthGuard } from 'src/auth/auth.guard';
+import { HashtagCount } from './dto/hashtag-count.model';
+import { UpdateRestaurantInput } from './dto/update-restaurant.input';
 
-@Resolver()
+@Resolver(() => Restaurant)
 export class RestaurantResolver {
   constructor(private readonly restaurantService: RestaurantService) {}
-
-  @Mutation(() => String) // 回傳類型是 String (餐廳 ID)
-  async createRestaurant(
-    @Args('name') name: string,
-    @Args('address') address: string,
-    @Args('lat', { type: () => Float }) lat: number,
-    @Args('lng', { type: () => Float }) lng: number,
-  ): Promise<string> {
-    return this.restaurantService.createRestaurant(name, address, lat, lng);
-  }
 
   //查詢所有餐廳的 Query
   @Query(() => [Restaurant], { name: 'restaurants' })
@@ -36,8 +30,45 @@ export class RestaurantResolver {
   async getNearbyRestaurants(
     @Args('geohashPrefix', { type: () => String }) geohashPrefix: string,
   ): Promise<Restaurant[]> {
-    // Geohash 的精度，7 位約等於 150 公尺範圍
-    // const prefix = geohashPrefix.substring(0, 7);
     return this.restaurantService.findNearby(geohashPrefix);
+  }
+
+  @UseGuards(AuthGuard)
+  @Mutation(() => String)
+  async createRestaurant(
+    @Args('name') name: string,
+    @Args('address') address: string,
+    @Args('lat', { type: () => Float }) lat: number,
+    @Args('lng', { type: () => Float }) lng: number,
+    @Context() context,
+    @Args('info', { type: () => String, nullable: true }) info?: string,
+  ): Promise<string> {
+    if (context.user.role !== 'ADMIN') {
+      throw new ForbiddenException('Only administrators can create restaurants.');
+    }
+    return this.restaurantService.createRestaurant(name, address, lat, lng, info);
+  }
+
+  @UseGuards(AuthGuard)
+  @Mutation(() => Restaurant)
+  async updateRestaurant(
+    @Args('id') id: string,
+    @Args('input') input: UpdateRestaurantInput,
+    @Context() context,
+  ): Promise<Restaurant> {
+    if (context.user.role !== 'ADMIN') {
+      throw new ForbiddenException('Only administrators can edit restaurants.');
+    }
+    return this.restaurantService.updateRestaurantDetails(id, input.info, input.menu);
+  }
+
+  @ResolveField('topHashtags', () => [HashtagCount])
+  getTopHashtags(@Parent() restaurant: any): HashtagCount[] {
+    const hashtagCounts = restaurant.hashtagCounts;
+    if (!hashtagCounts) return [];
+    return Object.entries(hashtagCounts)
+      .map(([tag, count]) => ({ tag, count: count as number }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 5);
   }
 }

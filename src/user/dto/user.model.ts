@@ -11,4 +11,7 @@ export class User {
 
   @Field({ nullable: true })
   displayName?: string;
+
+  @Field()
+  role: string; // 'NORMAL' 或 'ADMIN'
 }

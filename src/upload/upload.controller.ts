@@ -15,7 +15,7 @@ export class UploadController {
     }
     try {
       const result = await this.uploadService.uploadImage(file);
-      return { imageUrls: result.secure_url }; // 回傳安全的 https 網址
+      return { imageUrls: result.secure_url }; 
     } catch (error) {
       throw new InternalServerErrorException('Image upload failed.');
     }

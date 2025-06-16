@@ -2,6 +2,17 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
+type HashtagCount {
+  tag: String!
+  count: Int!
+}
+
+type MenuItem {
+  name: String!
+  price: Float!
+  description: String
+}
+
 type Restaurant {
   restaurantId: ID!
   name: String!
@@ -10,6 +21,16 @@ type Restaurant {
   lat: Float!
   lng: Float!
   geohash: String!
+  info: String
+  topHashtags: [HashtagCount!]!
+  menu: [MenuItem]
+}
+
+type User {
+  uid: ID!
+  email: String!
+  displayName: String
+  role: String!
 }
 
 type Post {
@@ -18,14 +39,9 @@ type Post {
   content: String!
   rating: Float!
   restaurant: Restaurant!
-  authorId: String!
+  hashtags: [String]
+  author: User!
   imageUrls: [String]
-}
-
-type User {
-  uid: ID!
-  email: String!
-  displayName: String
 }
 
 type Query {
@@ -37,12 +53,24 @@ type Query {
 }
 
 type Mutation {
-  createRestaurant(name: String!, address: String!, lat: Float!, lng: Float!): String!
-  createPost(title: String!, content: String!, rating: Float!, restaurantId: String!, imageUrls: [String]): String!
+  createRestaurant(name: String!, address: String!, lat: Float!, lng: Float!, info: String): String!
+  updateRestaurant(id: String!, input: UpdateRestaurantInput!): Restaurant!
+  createPost(title: String!, content: String!, rating: Float!, restaurantId: String!, imageUrls: [String], hashtags: [String]): String!
   deletePost(postId: String!): Boolean!
   updatePost(postId: String!, updatePostInput: UpdatePostInput!): Post!
-  register(email: String!, password: String!): User!
+  register(email: String!, password: String!, displayName: String!): User!
   ensureUser: User!
+}
+
+input UpdateRestaurantInput {
+  info: String
+  menu: [MenuItemInput!]
+}
+
+input MenuItemInput {
+  name: String!
+  price: Float!
+  description: String
 }
 
 input UpdatePostInput {

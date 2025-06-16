@@ -1,10 +1,12 @@
 // src/restaurant/dto/restaurant.model.ts
 
+import { HashtagCount } from './hashtag-count.model';
+import { MenuItem } from './menu-item.model';
 import { Field, Float, ID, ObjectType } from '@nestjs/graphql';
 
-@ObjectType() // 宣告這是一個 GraphQL 物件類型
+@ObjectType()
 export class Restaurant {
-  @Field(() => ID) // 宣告欄位，類型為 ID
+  @Field(() => ID) 
   restaurantId: string;
 
   @Field()
@@ -24,4 +26,13 @@ export class Restaurant {
 
   @Field()
   geohash: string;
+
+  @Field({ nullable: true })
+  info?: string;
+
+  @Field(() => [HashtagCount], { nullable: 'itemsAndList' })
+  topHashtags?: HashtagCount[];
+
+  @Field(() => [MenuItem], { nullable: 'itemsAndList' })
+  menu?: MenuItem[];
 }

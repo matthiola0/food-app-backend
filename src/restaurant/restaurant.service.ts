@@ -2,8 +2,9 @@
 
 import { Injectable, NotFoundException } from '@nestjs/common';
 import * as admin from 'firebase-admin';
-import { Restaurant } from './dto/restaurant.model';
 import * as ngeohash from 'ngeohash';
+import { Restaurant } from './dto/restaurant.model';
+import { MenuItem } from './dto/menu-item.model';
 
 @Injectable()
 export class RestaurantService {
@@ -11,18 +12,21 @@ export class RestaurantService {
   private readonly restaurantCollection = this.db.collection('restaurants');
 
   // 建立餐廳
-  async createRestaurant(name: string, address: string, lat: number, lng: number): Promise<string> {
-    const geohash = ngeohash.encode(lat, lng); // 計算 geohash
+  async createRestaurant(name: string, address: string, lat: number, lng: number, info?: string): Promise<string> {
+    const geohash = ngeohash.encode(lat, lng);
     const docRef = this.restaurantCollection.doc();
     await docRef.set({
       name,
       address,
       lat,
       lng,
-      geohash, // 儲存 geohash
+      geohash,
+      info: info || '',
+      menu: [],
+      hashtagCounts: {},
     });
     return docRef.id;
-}
+  }
 
   // 查詢所有餐廳
   async findAll(): Promise<Restaurant[]> {
@@ -67,6 +71,14 @@ export class RestaurantService {
         geohash: data.geohash,
       };
     });
+  }
+
+  async updateRestaurantDetails(id: string, info?: string, menu?: MenuItem[]): Promise<Restaurant> {
+    const updates = {};
+    if (info !== undefined) updates['info'] = info;
+    if (menu !== undefined) updates['menu'] = menu.map(item => ({...item})); // 確保是普通物件
+    await this.restaurantCollection.doc(id).update(updates);
+    return this.findById(id);
   }
 }
 
